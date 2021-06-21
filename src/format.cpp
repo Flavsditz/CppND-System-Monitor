@@ -1,11 +1,26 @@
-#include <string>
-
 #include "format.h"
 
-using std::string;
+#include <string>
 
-// TODO: Complete this helper function
-// INPUT: Long int measuring seconds
-// OUTPUT: HH:MM:SS
-// REMOVE: [[maybe_unused]] once you define the function
-string Format::ElapsedTime(long seconds[[maybe_unused]]) { return string(); }
+using std::string;
+using std::to_string;
+
+string Format::ElapsedTime(long seconds) {
+  long ss = seconds % 60;
+  long totalMins = seconds / 60;
+
+  long mm = totalMins % 60;
+  long hh = totalMins / 60;
+
+  return Pad(hh) + ":" + Pad(mm) + ":" + Pad(ss);
+}
+
+string Format::Pad(long number){
+  const string& basicString = to_string(number);
+
+  if(number > 9){
+    return basicString;
+  }
+  
+  return "0"+basicString;
+}
