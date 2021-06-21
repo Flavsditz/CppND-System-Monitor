@@ -1,7 +1,5 @@
 #include "linux_parser.h"
 
-#include <dirent.h>
-
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -49,26 +47,6 @@ string LinuxParser::Kernel() {
   }
   return kernel;
 }
-
-// BONUS: Update this to use std::filesystem
-//vector<int> LinuxParser::Pids() {
-//  vector<int> pids;
-//  DIR* directory = opendir(kProcDirectory.c_str());
-//  struct dirent* file;
-//  while ((file = readdir(directory)) != nullptr) {
-//    // Is this a directory?
-//    if (file->d_type == DT_DIR) {
-//      // Is every character of the name a digit?
-//      string filename(file->d_name);
-//      if (std::all_of(filename.begin(), filename.end(), isdigit)) {
-//        int pid = stoi(filename);
-//        pids.push_back(pid);
-//      }
-//    }
-//  }
-//  closedir(directory);
-//  return pids;
-//}
 
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
@@ -130,11 +108,28 @@ long LinuxParser::IdleJiffies() { return 0; }
 // TODO: Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() { return {}; }
 
-// TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { return 0; }
+int LinuxParser::TotalProcesses() { return ParseProcesses("processes"); }
 
-// TODO: Read and return the number of running processes
-int LinuxParser::RunningProcesses() { return 0; }
+int LinuxParser::RunningProcesses() { return ParseProcesses("procs_running"); }
+
+int LinuxParser::ParseProcesses(string key) {
+  string line;
+  string tmp;
+  std::ifstream filestream(kProcDirectory + kStatFilename);
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      std::istringstream linestream(line);
+
+      linestream >> tmp;
+      if (tmp == key) {
+        linestream >> tmp;
+        return stoi(tmp);
+      }
+    }
+  }
+
+  return 0;
+}
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
