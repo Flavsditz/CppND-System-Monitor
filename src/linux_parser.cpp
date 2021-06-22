@@ -1,5 +1,7 @@
 #include "linux_parser.h"
 
+#include <unistd.h>
+
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -185,6 +187,22 @@ string LinuxParser::Uid(int pid [[maybe_unused]]) { return string(); }
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::User(int pid [[maybe_unused]]) { return string(); }
 
-// TODO: Read and return the uptime of a process
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid [[maybe_unused]]) { return 0; }
+long LinuxParser::UpTime(int pid) {
+  string line;
+  string value;
+  vector<string> values;
+
+  std::ifstream filestream(kProcDirectory + to_string(pid) + kStatFilename);
+  if (filestream.is_open()) {
+    std::getline(filestream, line);
+    std::istringstream linestream(line);
+
+    while (linestream >> value) {
+      values.push_back(value);
+    }
+  }
+
+  // The value we want is the 22nd value on the line we just parsed
+  long seconds = stol(values[21]) / sysconf(_SC_CLK_TCK);
+  return seconds;
+}
