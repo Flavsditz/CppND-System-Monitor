@@ -8,6 +8,7 @@ namespace fs = std::filesystem;
 
 using std::cout;
 using std::stof;
+using std::stol;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -104,21 +105,46 @@ long LinuxParser::UpTime() {
   return 0;
 }
 
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
+long LinuxParser::Jiffies() {
+  return LinuxParser::ActiveJiffies() + LinuxParser::IdleJiffies();
+}
 
 // TODO: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::ActiveJiffies(int pid [[maybe_unused]]) { return 0; }
 
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+long LinuxParser::ActiveJiffies() {
+  vector<string> jiffies = LinuxParser::CpuUtilization();
 
-// TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
+  return stol(jiffies[kUser_]) + stol(jiffies[kNice_]) +
+         stol(jiffies[kSystem_]) + stol(jiffies[kIRQ_]) +
+         stol(jiffies[kSoftIRQ_]) + stol(jiffies[kSteal_]);
+}
 
-// TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+long LinuxParser::IdleJiffies() {
+  vector<string> jiffies = LinuxParser::CpuUtilization();
+
+  return stol(jiffies[kIdle_]) + stol(jiffies[kIOwait_]);
+}
+
+vector<string> LinuxParser::CpuUtilization() {
+  string line, cpuNumber;
+  vector<string> values{10};
+  std::ifstream filestream(kProcDirectory + kStatFilename);
+  if (filestream.is_open()) {
+    std::getline(filestream, line);
+    std::istringstream linestream(line);
+
+    // Although we could simply get all values and "push_back" into the array
+    // this shows what is being stored in which position
+    linestream >> cpuNumber >> values[kUser_] >> values[kNice_] >>
+        values[kSystem_] >> values[kIdle_] >> values[kIOwait_] >>
+        values[kIRQ_] >> values[kSoftIRQ_] >> values[kSteal_] >>
+        values[kGuest_] >> values[kGuestNice_];
+  }
+
+  return values;
+}
 
 int LinuxParser::TotalProcesses() { return ParseProcesses("processes"); }
 
