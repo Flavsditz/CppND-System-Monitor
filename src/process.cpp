@@ -19,14 +19,11 @@ int Process::Pid() { return pid; }
 // TODO: Return this process's CPU utilization
 float Process::CpuUtilization() { return 0; }
 
-// TODO: Return the command that generated this process
-string Process::Command() { return string(); }
+string Process::Command() { return LinuxParser::Command(pid); }
 
-// TODO: Return this process's memory utilization
-string Process::Ram() { return string(); }
+string Process::Ram() { return LinuxParser::Ram(pid); }
 
-// TODO: Return the user (name) that generated this process
-string Process::User() { return string(); }
+string Process::User() { return LinuxParser::User(pid); }
 
 long int Process::UpTime() { return LinuxParser::UpTime(pid); }
 

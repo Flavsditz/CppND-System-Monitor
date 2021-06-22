@@ -171,21 +171,80 @@ int LinuxParser::ParseProcesses(string key) {
   return 0;
 }
 
-// TODO: Read and return the command associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Command(int pid) {
+  string line;
+  string value;
 
-// TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid [[maybe_unused]]) { return string(); }
+  std::ifstream filestream(kProcDirectory + to_string(pid) + kCmdlineFilename);
+  if (filestream.is_open()) {
+    std::getline(filestream, line);
+  }
+  return line;
+}
 
-// TODO: Read and return the user ID associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Uid(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Ram(int pid) {
+  string line;
+  string value;
 
-// TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid [[maybe_unused]]) { return string(); }
+  std::ifstream filestream(kProcDirectory + to_string(pid) + kStatusFilename);
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      std::istringstream linestream(line);
+
+      linestream >> value;
+      if (value == "VmSize:") {
+        linestream >> value;
+        break;
+      }
+    }
+  }
+
+  // Convert value to MB
+  float mbValue = stof(value) / 1000;
+  return to_string(mbValue);
+}
+
+string LinuxParser::Uid(int pid) {
+  string line;
+  string value;
+
+  std::ifstream filestream(kProcDirectory + to_string(pid) + kStatusFilename);
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      std::istringstream linestream(line);
+      linestream >> value;
+
+      if (value == "Uid:") {
+        linestream >> value;
+        break;
+      }
+    }
+  }
+
+  return value;
+}
+
+string LinuxParser::User(int pid) {
+  string uid = LinuxParser::Uid(pid);
+
+  string username, x, lineUID;
+  string line;
+
+  std::ifstream filestream(kPasswordPath);
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      std::replace(line.begin(), line.end(), ':', ' ');
+      std::istringstream linestream(line);
+
+      linestream >> username >> x >> lineUID;
+      if (lineUID == uid) {
+        break;
+      }
+    }
+  }
+
+  return username;
+}
 
 long LinuxParser::UpTime(int pid) {
   string line;
