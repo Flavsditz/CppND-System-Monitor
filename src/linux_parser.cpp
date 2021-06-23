@@ -1,6 +1,8 @@
 #include "linux_parser.h"
 
+#include <dirent.h>
 #include <unistd.h>
+#include <sstream>
 
 #include <filesystem>
 #include <iostream>
@@ -55,19 +57,20 @@ string LinuxParser::Kernel() {
 
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
-
-  fs::path path = kProcDirectory;
-
-  for (auto& p : fs::directory_iterator(path)) {
-    if (fs::is_directory(p.path())) {
-      std::string fileName = p.path().filename();
-      if (std::all_of(fileName.begin(), fileName.end(), isdigit)) {
-        int pid = stoi(fileName);
+  DIR* directory = opendir(kProcDirectory.c_str());
+  struct dirent* file;
+  while ((file = readdir(directory)) != nullptr) {
+    // Is this a directory?
+    if (file->d_type == DT_DIR) {
+      // Is every character of the name a digit?
+      string filename(file->d_name);
+      if (std::all_of(filename.begin(), filename.end(), isdigit)) {
+        int pid = stoi(filename);
         pids.push_back(pid);
       }
     }
   }
-
+  closedir(directory);
   return pids;
 }
 
