@@ -1,5 +1,7 @@
 #include "format.h"
 
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 using std::string;
@@ -15,12 +17,20 @@ string Format::ElapsedTime(long seconds) {
   return Pad(hh) + ":" + Pad(mm) + ":" + Pad(ss);
 }
 
-string Format::Pad(long number){
+string Format::Pad(long number) {
   const string& basicString = to_string(number);
 
-  if(number > 9){
+  if (number > 9) {
     return basicString;
   }
-  
-  return "0"+basicString;
+
+  return "0" + basicString;
+}
+
+string Format::PrecisionFloat(float number, int precision) {
+  std::stringstream stream;
+  stream << std::fixed << std::setprecision(precision) << number;
+  std::string s = stream.str();
+
+  return s;
 }

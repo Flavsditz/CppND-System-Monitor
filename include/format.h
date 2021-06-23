@@ -6,6 +6,7 @@
 namespace Format {
 std::string ElapsedTime(long times);
 std::string Pad(long number);
-};                                    // namespace Format
+std::string PrecisionFloat(float number, int precision);
+};  // namespace Format
 
 #endif

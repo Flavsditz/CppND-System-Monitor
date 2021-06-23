@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "format.h"
 namespace fs = std::filesystem;
 
 using std::cout;
@@ -111,9 +113,38 @@ long LinuxParser::Jiffies() {
   return LinuxParser::ActiveJiffies() + LinuxParser::IdleJiffies();
 }
 
-// TODO: Read and return the number of active jiffies for a PID
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid [[maybe_unused]]) { return 0; }
+long LinuxParser::ActiveJiffies(int pid) {
+  long totalTime;
+
+  string line, value;
+  vector<string> values;
+
+  std::ifstream stream(kProcDirectory + std::to_string(pid) + kStatFilename);
+  if (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+
+    while (linestream >> value) {
+      values.push_back(value);
+    }
+  }
+
+  // make sure parsing was correct and values was read
+  long utime = LinuxParser::GetLongOutOfVector(values, 13);
+  long stime = LinuxParser::GetLongOutOfVector(values, 14);
+  long cutime = LinuxParser::GetLongOutOfVector(values, 15);
+  long cstime = LinuxParser::GetLongOutOfVector(values, 16);
+
+  totalTime = utime + stime + cutime + cstime;
+  return totalTime / sysconf(_SC_CLK_TCK);
+}
+
+long LinuxParser::GetLongOutOfVector(vector<string> values, int position){
+  if (std::all_of(values[position].begin(), values[position].end(), isdigit)) {
+    return stol(values[position]);
+  }
+  return 0;
+}
 
 long LinuxParser::ActiveJiffies() {
   vector<string> jiffies = LinuxParser::CpuUtilization();
@@ -184,15 +215,16 @@ string LinuxParser::Command(int pid) {
 
 string LinuxParser::Ram(int pid) {
   string line;
-  string value;
+  string key;
+  string value{"0"};
 
   std::ifstream filestream(kProcDirectory + to_string(pid) + kStatusFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
       std::istringstream linestream(line);
 
-      linestream >> value;
-      if (value == "VmSize:") {
+      linestream >> key;
+      if (key == "VmSize:") {
         linestream >> value;
         break;
       }
@@ -201,7 +233,8 @@ string LinuxParser::Ram(int pid) {
 
   // Convert value to MB
   float mbValue = stof(value) / 1000;
-  return to_string(mbValue);
+
+  return Format::PrecisionFloat(mbValue, 2);
 }
 
 string LinuxParser::Uid(int pid) {
