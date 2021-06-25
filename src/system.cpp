@@ -31,14 +31,22 @@ vector<Process>& System::Processes() {
   return processes_;
 }
 
-std::string System::Kernel() { return LinuxParser::Kernel(); }
+System::System() {
+  m_kernel = LinuxParser::Kernel();
+  m_os = LinuxParser::OperatingSystem();
+  m_memUtil = LinuxParser::MemoryUtilization();
+  m_runningProcs = LinuxParser::RunningProcesses();
+  m_totalProcs = LinuxParser::TotalProcesses();
+}
 
-float System::MemoryUtilization() { return LinuxParser::MemoryUtilization(); }
+std::string System::Kernel() { return m_kernel; }
 
-std::string System::OperatingSystem() { return LinuxParser::OperatingSystem(); }
+float System::MemoryUtilization() { return m_memUtil; }
 
-int System::RunningProcesses() { return LinuxParser::RunningProcesses(); }
+std::string System::OperatingSystem() { return m_os; }
 
-int System::TotalProcesses() { return LinuxParser::TotalProcesses(); }
+int System::RunningProcesses() { return m_runningProcs; }
+
+int System::TotalProcesses() { return m_totalProcs; }
 
 long int System::UpTime() { return LinuxParser::UpTime(); }

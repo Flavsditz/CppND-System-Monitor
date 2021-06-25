@@ -3,7 +3,9 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include <cstring>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -11,6 +13,7 @@
 namespace fs = std::filesystem;
 
 using std::cout;
+using std::regex;
 using std::stof;
 using std::stol;
 using std::string;
@@ -57,6 +60,7 @@ string LinuxParser::Kernel() {
   }
   stream.close();
 
+  TimeInJiffies(kernel);
   return kernel;
 }
 
@@ -238,7 +242,10 @@ string LinuxParser::Ram(int pid) {
       std::istringstream linestream(line);
 
       linestream >> key;
-      if (key == "VmSize:") {
+
+      // We are using VmData since it shows the physical memory instead of the
+      // virtual memory size (Given by "VmSize")
+      if (key == "VmData:") {
         linestream >> value;
         break;
       }
@@ -313,6 +320,30 @@ long LinuxParser::UpTime(int pid) {
   filestream.close();
 
   // The value we want is the 22nd value on the line we just parsed
-  long seconds = stol(values[21]) / sysconf(_SC_CLK_TCK);
-  return seconds;
+  const string& kernel = LinuxParser::Kernel();
+  if (isTimeInJiffies) {
+    long seconds = UpTime() - stol(values[21]);
+    return seconds;
+  } else {
+    long seconds = UpTime() - stol(values[21]) / sysconf(_SC_CLK_TCK);
+    return seconds;
+  }
+}
+
+bool LinuxParser::TimeInJiffies(const std::string& kernelString) {
+  // regex expression for pattern to be searched
+  regex regexp("[0-9]+.[0-9]+.[0-9]+");
+
+  // flag type for determining the matching behavior (in this case on string
+  // objects)
+  std::smatch m;
+
+  // regex_search that searches pattern regexp in the string
+  regex_search(kernelString, m, regexp);
+
+  for (string x : m)
+    // Using lexicographical comparison
+    isTimeInJiffies =  x < string("2.6.0");
+
+  return false;
 }
