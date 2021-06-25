@@ -2,9 +2,7 @@
 
 #include <dirent.h>
 #include <unistd.h>
-#include <sstream>
 
-#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -34,11 +32,16 @@ string LinuxParser::OperatingSystem() {
       while (linestream >> key >> value) {
         if (key == "PRETTY_NAME") {
           std::replace(value.begin(), value.end(), '_', ' ');
-          return value;
+          break;
         }
+      }
+      if (key == "PRETTY_NAME") {
+        break;
       }
     }
   }
+  filestream.close();
+
   return value;
 }
 
@@ -52,6 +55,8 @@ string LinuxParser::Kernel() {
     std::istringstream linestream(line);
     linestream >> os >> version >> kernel;
   }
+  stream.close();
+
   return kernel;
 }
 
@@ -93,23 +98,25 @@ float LinuxParser::MemoryUtilization() {
     }
   }
 
+  filestream.close();
+
   float used = stof(total) - stof(free);
   return used / stof(total);
 }
 
 long LinuxParser::UpTime() {
   string line;
-  string value;
+  string value{"0"};
   std::ifstream filestream(kProcDirectory + kUptimeFilename);
   if (filestream.is_open()) {
     std::getline(filestream, line);
     std::istringstream linestream(line);
 
     linestream >> value;
-    return stol(value);
   }
+  filestream.close();
 
-  return 0;
+  return stol(value);
 }
 
 long LinuxParser::Jiffies() {
@@ -131,6 +138,7 @@ long LinuxParser::ActiveJiffies(int pid) {
       values.push_back(value);
     }
   }
+  stream.close();
 
   // make sure parsing was correct and values was read
   long utime = LinuxParser::GetLongOutOfVector(values, 13);
@@ -142,7 +150,7 @@ long LinuxParser::ActiveJiffies(int pid) {
   return totalTime / sysconf(_SC_CLK_TCK);
 }
 
-long LinuxParser::GetLongOutOfVector(vector<string> values, int position){
+long LinuxParser::GetLongOutOfVector(vector<string> values, int position) {
   if (std::all_of(values[position].begin(), values[position].end(), isdigit)) {
     return stol(values[position]);
   }
@@ -178,6 +186,7 @@ vector<string> LinuxParser::CpuUtilization() {
         values[kIRQ_] >> values[kSoftIRQ_] >> values[kSteal_] >>
         values[kGuest_] >> values[kGuestNice_];
   }
+  filestream.close();
 
   return values;
 }
@@ -188,7 +197,7 @@ int LinuxParser::RunningProcesses() { return ParseProcesses("procs_running"); }
 
 int LinuxParser::ParseProcesses(string key) {
   string line;
-  string tmp;
+  string tmp{"0"};
   std::ifstream filestream(kProcDirectory + kStatFilename);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
@@ -197,12 +206,12 @@ int LinuxParser::ParseProcesses(string key) {
       linestream >> tmp;
       if (tmp == key) {
         linestream >> tmp;
-        return stoi(tmp);
+        break;
       }
     }
   }
-
-  return 0;
+  filestream.close();
+  return stoi(tmp);
 }
 
 string LinuxParser::Command(int pid) {
@@ -213,6 +222,8 @@ string LinuxParser::Command(int pid) {
   if (filestream.is_open()) {
     std::getline(filestream, line);
   }
+  filestream.close();
+
   return line;
 }
 
@@ -233,6 +244,7 @@ string LinuxParser::Ram(int pid) {
       }
     }
   }
+  filestream.close();
 
   // Convert value to MB
   float mbValue = stof(value) / 1000;
@@ -256,6 +268,7 @@ string LinuxParser::Uid(int pid) {
       }
     }
   }
+  filestream.close();
 
   return value;
 }
@@ -278,6 +291,7 @@ string LinuxParser::User(int pid) {
       }
     }
   }
+  filestream.close();
 
   return username;
 }
@@ -296,6 +310,7 @@ long LinuxParser::UpTime(int pid) {
       values.push_back(value);
     }
   }
+  filestream.close();
 
   // The value we want is the 22nd value on the line we just parsed
   long seconds = stol(values[21]) / sysconf(_SC_CLK_TCK);
