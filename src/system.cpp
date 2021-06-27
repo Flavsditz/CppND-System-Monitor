@@ -16,6 +16,11 @@ using std::size_t;
 using std::string;
 using std::vector;
 
+System::System() {
+  m_kernel = LinuxParser::Kernel();
+  m_os = LinuxParser::OperatingSystem();
+}
+
 Processor& System::Cpu() { return cpu_; }
 
 vector<Process>& System::Processes() {
@@ -31,22 +36,14 @@ vector<Process>& System::Processes() {
   return processes_;
 }
 
-System::System() {
-  m_kernel = LinuxParser::Kernel();
-  m_os = LinuxParser::OperatingSystem();
-  m_memUtil = LinuxParser::MemoryUtilization();
-  m_runningProcs = LinuxParser::RunningProcesses();
-  m_totalProcs = LinuxParser::TotalProcesses();
-}
-
 std::string System::Kernel() { return m_kernel; }
 
-float System::MemoryUtilization() { return m_memUtil; }
+float System::MemoryUtilization() { return LinuxParser::MemoryUtilization(); }
 
 std::string System::OperatingSystem() { return m_os; }
 
-int System::RunningProcesses() { return m_runningProcs; }
+int System::RunningProcesses() { return LinuxParser::RunningProcesses(); }
 
-int System::TotalProcesses() { return m_totalProcs; }
+int System::TotalProcesses() { return LinuxParser::TotalProcesses(); }
 
 long int System::UpTime() { return LinuxParser::UpTime(); }

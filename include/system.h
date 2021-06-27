@@ -24,9 +24,6 @@ class System {
   std::vector<Process> processes_ = {};
   std::string m_kernel;
   std::string m_os;
-  float m_memUtil;
-  int m_runningProcs;
-  int m_totalProcs;
 };
 
 #endif

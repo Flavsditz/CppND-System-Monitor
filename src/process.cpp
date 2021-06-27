@@ -11,9 +11,7 @@ Process::Process(int pid) : pid(pid) {}
 int Process::Pid() { return pid; }
 
 float Process::CpuUtilization() const {
-  long totalUptime = LinuxParser::UpTime(pid);
-
-  long seconds = LinuxParser::UpTime() - totalUptime;
+  long seconds = LinuxParser::UpTime(pid);
   long totalTime = LinuxParser::ActiveJiffies(pid);
 
   float utilization = float(totalTime) / float(seconds);

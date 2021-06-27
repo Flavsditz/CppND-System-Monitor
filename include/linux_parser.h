@@ -54,7 +54,7 @@ std::string Uid(int pid);
 std::string User(int pid);
 long int UpTime(int pid);
 long GetLongOutOfVector(std::vector<std::string> values, int position);
-bool TimeInJiffies(const std::string& basicString);
+void TimeInJiffies(const std::string& basicString);
 static bool isTimeInJiffies=false;
 };  // namespace LinuxParser
 

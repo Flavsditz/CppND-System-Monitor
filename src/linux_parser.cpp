@@ -330,20 +330,23 @@ long LinuxParser::UpTime(int pid) {
   }
 }
 
-bool LinuxParser::TimeInJiffies(const std::string& kernelString) {
-  // regex expression for pattern to be searched
-  regex regexp("[0-9]+.[0-9]+.[0-9]+");
+void LinuxParser::TimeInJiffies(const std::string& kernelString) {
+  std::istringstream iss(kernelString);
+  std::vector<std::string> tokens;
+  std::string token;
+  while (std::getline(iss, token, '.')) {
+    if (!token.empty())
+      tokens.push_back(token);
+  }
 
-  // flag type for determining the matching behavior (in this case on string
-  // objects)
-  std::smatch m;
-
-  // regex_search that searches pattern regexp in the string
-  regex_search(kernelString, m, regexp);
-
-  for (string x : m)
-    // Using lexicographical comparison
-    isTimeInJiffies =  x < string("2.6.0");
-
-  return false;
+  // Check if kernel version is smaller than 2.6 (which means time is in Jiffies)
+  if(stoi(tokens[0]) > 2){
+    isTimeInJiffies = false;
+  } else {
+    if(stoi(tokens[1]) < 6){
+      isTimeInJiffies = true;
+    } else {
+      isTimeInJiffies = false;
+    }
+  }
 }
