@@ -19,6 +19,7 @@ using std::vector;
 System::System() {
   m_kernel = LinuxParser::Kernel();
   m_os = LinuxParser::OperatingSystem();
+  m_isTimeInJiffies = LinuxParser::TimeInJiffies(m_kernel);
 }
 
 Processor& System::Cpu() { return cpu_; }
@@ -28,7 +29,7 @@ vector<Process>& System::Processes() {
 
   processes_.clear();
   for (int pid : pids) {
-    Process process(pid);
+    Process process(pid, m_isTimeInJiffies);
     processes_.push_back(process);
   }
 

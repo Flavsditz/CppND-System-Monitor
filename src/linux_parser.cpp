@@ -60,7 +60,6 @@ string LinuxParser::Kernel() {
   }
   stream.close();
 
-  TimeInJiffies(kernel);
   return kernel;
 }
 
@@ -303,7 +302,7 @@ string LinuxParser::User(int pid) {
   return username;
 }
 
-long LinuxParser::UpTime(int pid) {
+long LinuxParser::UpTime(int pid, bool isTimeInJiffies) {
   string line;
   string value;
   vector<string> values;
@@ -329,7 +328,7 @@ long LinuxParser::UpTime(int pid) {
   }
 }
 
-void LinuxParser::TimeInJiffies(const std::string& kernelString) {
+bool LinuxParser::TimeInJiffies(const std::string& kernelString) {
   std::istringstream iss(kernelString);
   std::vector<std::string> tokens;
   std::string token;
@@ -340,12 +339,12 @@ void LinuxParser::TimeInJiffies(const std::string& kernelString) {
 
   // Check if kernel version is smaller than 2.6 (which means time is in Jiffies)
   if(stoi(tokens[0]) > 2){
-    isTimeInJiffies = false;
+    return false;
   } else {
     if(stoi(tokens[1]) < 6){
-      isTimeInJiffies = true;
+      return true;
     } else {
-      isTimeInJiffies = false;
+      return false;
     }
   }
 }

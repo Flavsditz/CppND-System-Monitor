@@ -24,6 +24,7 @@ class System {
   std::vector<Process> processes_ = {};
   std::string m_kernel;
   std::string m_os;
+  bool m_isTimeInJiffies;
 };
 
 #endif

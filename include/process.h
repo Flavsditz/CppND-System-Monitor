@@ -8,7 +8,7 @@ It contains relevant attributes as shown below
 */
 class Process {
  public:
-  explicit Process(int pid);
+  explicit Process(int pid, bool isTimeInJiffies);
 
   int Pid();
   std::string User() const;
@@ -20,6 +20,7 @@ class Process {
 
  private:
   int pid;
+  bool m_isTimeInJiffies;
   float m_cpu_utilization;
   void calculateCpuUtilization();
 };
