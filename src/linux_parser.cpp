@@ -320,7 +320,6 @@ long LinuxParser::UpTime(int pid) {
   filestream.close();
 
   // The value we want is the 22nd value on the line we just parsed
-  const string& kernel = LinuxParser::Kernel();
   if (isTimeInJiffies) {
     long seconds = UpTime() - stol(values[21]);
     return seconds;
