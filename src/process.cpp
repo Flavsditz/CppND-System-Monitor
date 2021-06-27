@@ -6,18 +6,18 @@
 
 using std::string;
 
-Process::Process(int pid) : pid(pid) {}
+Process::Process(int pid) : pid(pid) { calculateCpuUtilization(); }
 
 int Process::Pid() { return pid; }
 
-float Process::CpuUtilization() const {
+void Process::calculateCpuUtilization() {
   long seconds = LinuxParser::UpTime(pid);
   long totalTime = LinuxParser::ActiveJiffies(pid);
 
-  float utilization = float(totalTime) / float(seconds);
-
-  return utilization;
+  m_cpu_utilization = float(totalTime) / float(seconds);
 }
+
+float Process::CpuUtilization() const { return m_cpu_utilization; }
 
 string Process::Command() const { return LinuxParser::Command(pid); }
 
@@ -28,5 +28,5 @@ string Process::User() const { return LinuxParser::User(pid); }
 long int Process::UpTime() const { return LinuxParser::UpTime(pid); }
 
 bool Process::operator<(Process const& a) const {
-  return CpuUtilization() < a.CpuUtilization();
+  return m_cpu_utilization < a.CpuUtilization();
 }

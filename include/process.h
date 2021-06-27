@@ -20,6 +20,8 @@ class Process {
 
  private:
   int pid;
+  float m_cpu_utilization;
+  void calculateCpuUtilization();
 };
 
 #endif
